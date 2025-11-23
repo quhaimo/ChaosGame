@@ -8,6 +8,7 @@ int main() {
 
 	sf::VideoMode vm({1920, 1080});
 	sf::RenderWindow window(vm, "Chaos Game", sf::Style::Default);
+	sf::Font font("AdwaitaSans-Regular.ttf");
 
 	std::vector<sf::Vector2f> vertices;
 	std::vector<sf::Vector2f> points;
@@ -16,6 +17,7 @@ int main() {
 	int lastPt {0};
 
 	while (window.isOpen()) {
+
 
 		//interactive block
 		while (const std::optional event = window.pollEvent()) {
@@ -64,6 +66,14 @@ int main() {
 		}
 
 		window.clear();
+
+		sf::Text text(font);
+		if (vertices.size() < 3 || points.size() == 0) {
+			text.setString("Pick 4 points");
+			text.setCharacterSize(24);
+			text.setFillColor(sf::Color::White);
+			window.draw(text);
+		}
 
 		for (int i {0}; i < vertices.size(); i++) {
 			sf::RectangleShape rect(sf::Vector2f(10,10));
