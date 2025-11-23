@@ -1,91 +1,89 @@
-// Include important C++ libraries here
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
-//Make the code easier to type with "using namespace"
-using namespace sf;
-using namespace std;
+int main() {
 
-int main()
-{
-	// Create a video mode object
-	VideoMode vm(1920, 1080);
-	// Create and open a window for the game
-	RenderWindow window(vm, "Chaos Game!!", Style::Default);
-	
-	vector<Vector2f> vertices;
-	vector<Vector2f> points;
+	sf::VideoMode vm({1920, 1080});
+	sf::RenderWindow window(vm, "Chaos Game", sf::Style::Default);
 
-	while (window.isOpen())
-	{
-		/*
-		****************************************
-		Handle the players input
-		****************************************
-		*/
-		Event event;
-		while (window.pollEvent(event))
-		{
-		    if (event.type == Event::Closed)
-		    {
-					// Quit the game when the window is closed
-					window.close();
-		    }
-		    if (event.type == sf::Event::MouseButtonPressed)
-		    {
-			if (event.mouseButton.button == sf::Mouse::Left)
-			{
-			    std::cout << "the left button was pressed" << std::endl;
-			    std::cout << "mouse x: " << event.mouseButton.x << std::endl;
-			    std::cout << "mouse y: " << event.mouseButton.y << std::endl;
-	
-			    if(vertices.size() < 3)
-			    {
-				vertices.push_back(Vector2f(event.mouseButton.x, event.mouseButton.y));
-			    }
-			    else if(points.size() == 0)
-			    {
-				///fourth click
-				///push back to points vector
-			    }
+	std::vector<sf::Vector2f> vertices;
+	std::vector<sf::Vector2f> points;
+
+	//int frame {0};
+	int lastPt {0};
+
+	while (window.isOpen()) {
+
+		//interactive block
+		while (const std::optional event = window.pollEvent()) {
+
+			//event is an "optional" container, you need to peel back the optional layer, then the event layer before being able to 
+			//access the subevent
+			if (event->is<sf::Event::Closed>()) {
+				window.close();
 			}
-		    }
+			if (event->is<sf::Event::MouseButtonPressed>()) {
+				//event->getif returns a pointer to the event subtype (MouseButtonPressed)
+				//const because we only need to read the data from the event
+				//auto because the data type is too long to type
+				const auto* mb = event->getIf<sf::Event::MouseButtonPressed>();
+				if (mb->button == sf::Mouse::Button::Left) {
+					std::cout << "\nleft button pressed";
+					std::cout << "\nx pos: " << mb->position.x;
+					std::cout << "\ny pos: " << mb->position.y << std::endl;
+
+					if (vertices.size() < 3) {
+						vertices.push_back(sf::Vector2f(mb->position.x, mb->position.y));
+					}
+					else if (points.size() == 0) {
+						points.push_back(sf::Vector2f(mb->position.x, mb->position.y));
+					}
+				}
+			}
+
 		}
-		if (Keyboard::isKeyPressed(Keyboard::Escape))
-		{
+
+		//i guess we making triangles now
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Escape)) {
 			window.close();
 		}
-		/*
-		****************************************
-		Update
-		****************************************
-		*/
-	
-		if(points.size() > 0)
-		{
-		    ///generate more point(s)
-		    ///select random vertex
-		    ///calculate midpoint between random vertex and the last point in the vector
-		    ///push back the newly generated coord.
+
+		const int PTS_PER_FRAME {5};
+		if (points.size() > 0) {
+			for (int i {0}; i < PTS_PER_FRAME; i++) {
+				sf::Vector2f nxtPt;
+				int randVert = rand() % 3;
+				nxtPt.x = (vertices[randVert].x + points[lastPt].x) / 2;
+				nxtPt.y = (vertices[randVert].y + points[lastPt].y) / 2;
+				points.push_back(nxtPt);
+				lastPt++;
+			}
 		}
-	
-		/*
-		****************************************
-		Draw
-		****************************************
-		*/
+
 		window.clear();
-		for(int i = 0; i < vertices.size(); i++)
-		{
-		    RectangleShape rect(Vector2f(10,10));
-		    rect.setPosition(Vector2f(vertices[i].x, vertices[i].y));
-		    rect.setFillColor(Color::Blue);
-		    window.draw(rect);
+
+		for (int i {0}; i < vertices.size(); i++) {
+			sf::RectangleShape rect(sf::Vector2f(10,10));
+			rect.setPosition(sf::Vector2f(vertices[i].x, vertices[i].y));
+			rect.setFillColor(sf::Color::Blue);
+			window.draw(rect);
 		}
-		///TODO:  Draw points
+
+		for (int i {0}; i < points.size(); i++) {
+			sf::RectangleShape rect(sf::Vector2f(10,10));
+			rect.setPosition(sf::Vector2f(points[i].x, points[i].y));
+			rect.setFillColor(sf::Color::Red);
+			window.draw(rect);
+		}
+
 		window.display();
+
+		//std::cout << "frame: " << frame << std::endl;
+		//frame++;
+		
 	}
+
 }
