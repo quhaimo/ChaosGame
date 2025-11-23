@@ -76,7 +76,7 @@ int main() {
 			window.close();
 		}
 
-		const int PTS_PER_FRAME {5};
+		const int PTS_PER_FRAME {10};
 		if (points.size() > 0) {
 			for (int i {0}; i < PTS_PER_FRAME; i++) {
 
@@ -90,8 +90,8 @@ int main() {
 				}
 				prevVert = randVert;
 
-				nxtPt.x = (vertices[randVert].x + points[lastPt].x) - ((vertices[randVert].x + points[lastPt].x) * r);
-				nxtPt.y = (vertices[randVert].y + points[lastPt].y) - ((vertices[randVert].y + points[lastPt].y) * r);
+				nxtPt.x = (vertices[randVert].x * r) + (points[lastPt].x * (1 - r));
+				nxtPt.y = (vertices[randVert].y * r) + (points[lastPt].y * (1 - r));
 				points.push_back(nxtPt);
 				lastPt++;
 			}
@@ -112,6 +112,7 @@ int main() {
 				sf::RectangleShape rect(sf::Vector2f(10,10));
 				rect.setPosition(sf::Vector2f(buffer[i].x, buffer[i].y));
 				rect.setFillColor(sf::Color::White);
+				rect.setSize(sf::Vector2f(2,2));
 				window.draw(rect);
 			}
 		}
@@ -120,6 +121,7 @@ int main() {
 			sf::RectangleShape rect(sf::Vector2f(10,10));
 			rect.setPosition(sf::Vector2f(vertices[i].x, vertices[i].y));
 			rect.setFillColor(sf::Color::Blue);
+			rect.setSize(sf::Vector2f(2,2));
 			window.draw(rect);
 		}
 
@@ -127,6 +129,7 @@ int main() {
 			sf::RectangleShape rect(sf::Vector2f(10,10));
 			rect.setPosition(sf::Vector2f(points[i].x, points[i].y));
 			rect.setFillColor(sf::Color::Red);
+			rect.setSize(sf::Vector2f(2,2));
 			window.draw(rect);
 		}
 
