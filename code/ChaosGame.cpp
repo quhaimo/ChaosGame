@@ -3,6 +3,19 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <cmath>
+
+double calculateSF(int n) {
+
+	//n = number of vertices
+	if ( n % 4 == 0 ) { return (1 / (1 + tan(M_PI / n))); }
+
+	if ( n % 4 == 1 || n % 4 == 3) { return (1 / (1 + (2 * sin(M_PI / (2 * n))))); }
+
+	if ( n % 4 == 2) { return (1 / (1 + sin(M_PI/n))); }
+
+	return 0;
+}
 
 int main() {
 
@@ -12,9 +25,12 @@ int main() {
 
 	std::vector<sf::Vector2f> vertices;
 	std::vector<sf::Vector2f> points;
+	std::vector<sf::Vector2f> buffer;
 
 	//int frame {0};
 	int lastPt {0};
+	int prevVert {-1}; //hmmmmm
+	double r {0};
 
 	while (window.isOpen()) {
 
@@ -36,15 +52,22 @@ int main() {
 					std::cout << "\nleft button pressed";
 					std::cout << "\nx pos: " << mb->position.x;
 					std::cout << "\ny pos: " << mb->position.y << std::endl;
+					buffer.push_back(sf::Vector2f(mb->position.x, mb->position.y));
 
-					if (vertices.size() < 3) {
-						vertices.push_back(sf::Vector2f(mb->position.x, mb->position.y));
-					}
-					else if (points.size() == 0) {
-						points.push_back(sf::Vector2f(mb->position.x, mb->position.y));
-					}
 				}
 			}
+			
+			if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+				if (keyPressed->scancode == sf::Keyboard::Scan::Enter) {
+					for (int i {0}; i < buffer.size() - 1; i++) {
+						vertices.push_back(buffer[i]);
+					}
+					points.push_back(buffer[buffer.size() - 1]);
+					r = calculateSF(vertices.size());
+					std::cout << "r = " << r << std::endl;
+				}
+			}
+						
 
 		}
 
@@ -56,10 +79,19 @@ int main() {
 		const int PTS_PER_FRAME {5};
 		if (points.size() > 0) {
 			for (int i {0}; i < PTS_PER_FRAME; i++) {
+
 				sf::Vector2f nxtPt;
-				int randVert = rand() % 3;
-				nxtPt.x = (vertices[randVert].x + points[lastPt].x) / 2;
-				nxtPt.y = (vertices[randVert].y + points[lastPt].y) / 2;
+
+				int randVert = rand() % vertices.size();
+				if (vertices.size() > 3 && (randVert == prevVert)) {
+					while (randVert == prevVert) {
+						randVert = rand() % vertices.size();
+					}
+				}
+				prevVert = randVert;
+
+				nxtPt.x = (vertices[randVert].x + points[lastPt].x) - ((vertices[randVert].x + points[lastPt].x) * r);
+				nxtPt.y = (vertices[randVert].y + points[lastPt].y) - ((vertices[randVert].y + points[lastPt].y) * r);
 				points.push_back(nxtPt);
 				lastPt++;
 			}
@@ -68,11 +100,20 @@ int main() {
 		window.clear();
 
 		sf::Text text(font);
-		if (vertices.size() < 3 || points.size() == 0) {
-			text.setString("Pick 4 points");
+		if (vertices.size() == 0 || points.size() == 0) {
+			text.setString("Pick some points then press enter");
 			text.setCharacterSize(24);
 			text.setFillColor(sf::Color::White);
 			window.draw(text);
+		}
+
+		if (buffer.size() > 0 && vertices.size() == 0 && points.size() == 0) {
+			for (int i {0}; i < buffer.size(); i++) {
+				sf::RectangleShape rect(sf::Vector2f(10,10));
+				rect.setPosition(sf::Vector2f(buffer[i].x, buffer[i].y));
+				rect.setFillColor(sf::Color::White);
+				window.draw(rect);
+			}
 		}
 
 		for (int i {0}; i < vertices.size(); i++) {
